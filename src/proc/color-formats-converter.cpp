@@ -1,5 +1,20 @@
 // License: Apache 2.0. See LICENSE file in root directory.
 // Copyright(c) 2019 Intel Corporation. All Rights Reserved.
+#include <iomanip>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <cstring>
+
+#include <thread>
+#include <chrono>
+
+#if USE_TURBO_JPEG
+#include <turbojpeg.h>
+#endif
+
+using namespace std;
+using namespace std::chrono;
 
 #include "color-formats-converter.h"
 
@@ -655,6 +670,22 @@ namespace librealsense
     void unpack_mjpeg(byte * const dest[], const byte * source, int width, int height, int actual_size, int input_size)
     {
         int w, h, bpp;
+
+#if 1
+        static int count = 0;
+        static double total_time = 0;
+        time_point<high_resolution_clock> beforeTime = high_resolution_clock::now();
+#endif
+
+#if USE_TURBO_JPEG
+        long unsigned int _jpegSize = actual_size;
+        int jpegSubsamp;
+
+        tjhandle _jpegDecompressor = tjInitDecompress();
+        tjDecompressHeader2(_jpegDecompressor, (unsigned char*)source, _jpegSize, &w, &h, &jpegSubsamp);
+        tjDecompress2(_jpegDecompressor, (unsigned char*)source, _jpegSize, dest[0], w, 0/*pitch*/, h, TJPF_RGB, TJFLAG_FASTDCT | TJ_FASTUPSAMPLE);
+        tjDestroy(_jpegDecompressor);
+#else
         auto uncompressed_rgb = stbi_load_from_memory(source, actual_size, &w, &h, &bpp, false);
         if (uncompressed_rgb)
         {
@@ -664,6 +695,24 @@ namespace librealsense
         }
         else
             LOG_ERROR("jpeg decode failed");
+#endif
+
+#if 1
+        count++;
+        time_point<high_resolution_clock> currentTime = high_resolution_clock::now();
+        milliseconds passedTime = duration_cast<milliseconds>(currentTime - beforeTime);
+        total_time += passedTime.count();
+
+        if (count == 150)
+        {
+            double avg_time = total_time / count;
+            LOG_INFO("average jpeg conversion time: " << avg_time << " ms");
+
+            total_time = 0;
+            count = 0;
+        }
+#endif
+
     }
 
     /////////////////////////////
@@ -695,6 +744,22 @@ namespace librealsense
     void mjpeg_converter::process_function(byte * const dest[], const byte * source, int width, int height, int actual_size, int input_size)
     {
         unpack_mjpeg(dest, source, width, height, actual_size, input_size);
+
+#if 0
+        static int i = 0;
+        i++;
+
+        if ((i < 100) && (i % 30 == 0))
+        {
+            string fname = "f";
+            stringstream ss;
+            ss << setw(6) << setfill('0') << i;
+            fname = fname + ss.str() + ".jpg";
+            std::ofstream myfile(fname.c_str(), ios::out | ios::binary);
+            myfile.write((const char*)source, input_size);
+            myfile.close();
+        }
+#endif
     }
 
     void bgr_to_rgb::process_function(byte * const dest[], const byte * source, int width, int height, int actual_size, int input_size)

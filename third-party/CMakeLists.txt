@@ -11,6 +11,10 @@ endif()
 
 add_subdirectory(${_rel_path}/realsense-file)
 
+if(BUILD_WITH_JPEGTURBO)
+include(${_rel_path}/libjpeg-turbo/CMakeLists.txt)
+endif()
+
 if(BUILD_NETWORK_DEVICE)
 
     add_subdirectory(${_rel_path}/live555)

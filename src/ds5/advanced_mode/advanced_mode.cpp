@@ -87,6 +87,7 @@ namespace librealsense
             case ds::RS435_RGB_PID:
             case ds::RS465_PID:
             case ds::RS435I_PID:
+            case ds::RS438_PID:
                 default_430(p);
                 break;
             case ds::RS455_PID:
