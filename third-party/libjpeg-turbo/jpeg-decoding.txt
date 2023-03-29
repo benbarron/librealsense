@@ -51,6 +51,18 @@
    08/09 10:04:14,119 INFO [140293339174464] (color-formats-converter.cpp:710) average jpeg conversion time: 29.280000 ms
    08/09 10:04:24,118 INFO [140293339174464] (color-formats-converter.cpp:710) average jpeg conversion time: 30.460000 ms
 
-5. Performance from step 3 and 4 should be close
+5. Check actual decoding performance in ROS
+   export LRS_LOG_LEVEL=INFO
+   cd realsense-ros
+   source /opt/ros/humble/setup.bash
+   source ./install/setup.bash
+   ros2 launch realsense2_camera <app script>
+
+   A log file should appear in the folder, for example, 2022-09-08-10_04_03.log
+   Check jpeg conversion performance matric in the log file, for example
+   08/09 10:04:14,119 INFO [140293339174464] (color-formats-converter.cpp:710) average jpeg conversion time: 29.280000 ms
+   08/09 10:04:24,118 INFO [140293339174464] (color-formats-converter.cpp:710) average jpeg conversion time: 30.460000 ms
+
+6. Performance from step 3, 4 and 5 should be close
 
 
